@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    triggers {
+        // Requires GitHub webhook + Jenkins GitHub integration.
+        githubPush()
+    }
+
     environment {
         COMPOSE_PROJECT_NAME = "docker_master"
         COMPOSE_FILE = "docker-compose.yml"
@@ -125,6 +130,16 @@ pipeline {
     }
 
     post {
+        always {
+            echo 'Cleaning up containers after build...'
+            script {
+                if (isUnix()) {
+                    sh 'docker compose down --remove-orphans || true'
+                } else {
+                    bat 'docker compose down --remove-orphans || exit /b 0'
+                }
+            }
+        }
         success {
             echo 'Deployment completed successfully!'
         }
