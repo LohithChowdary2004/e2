@@ -1,0 +1,39 @@
+services:
+  mysql-db:
+    image: mysql:latest
+    container_name: mysql-container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root  # Changed to root
+      MYSQL_DATABASE: project        # ✅ Optional: Create a database automatically
+      MYSQL_USER: cduser             # ✅ Optional: Create a user
+      MYSQL_PASSWORD: root       # Changed to root
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build: ./backend
+    container_name: springboot-container
+    restart: always
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/project
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root  # Changed to root
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql-db
+
+  frontend:
+    build: ./frontend
+    container_name: react-container
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
